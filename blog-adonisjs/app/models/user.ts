@@ -1,11 +1,12 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column,  hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column,  hasMany , beforeSave} from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Review from './review.ts'
 import Post from './post.ts'
 import Comment from './comment.ts'
 
-
+// Remove the unused import statement for Hash
+// import Hash from '@ioc:Adonis/Core/Hash'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -43,6 +44,12 @@ export default class User extends BaseModel {
 @hasMany(() => Comment)
   public comments!: HasMany<typeof Comment>
 
+  @beforeSave()
+  public static async hashPassword (user: User) {
+    if (user.$dirty.password) {
+      user.password = await Hash.make(user.password)
+    }
+  }
 
 
 }
