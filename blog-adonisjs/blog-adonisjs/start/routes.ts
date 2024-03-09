@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import UsersController from "../app/controllers/users_controller.js"
+import { middleware } from '#start/kernel'
 
 router.get('/', async () => {
   return {
@@ -24,7 +25,7 @@ router.delete('/post', async () => {
 
 router.post('/users', UsersController.createUser)
 router.get('/users', UsersController.getAllUsers)
-router.get('/user/:id', UsersController.getUserById)
+router.get('/user/:id', UsersController.getUserById).use([middleware.auth()])
 router.put('/user/:id', UsersController.updateUser)
 router.delete('/user/:id', UsersController.deleteUser)
 router.get('/user/email/:email', UsersController.getUserByEmail)

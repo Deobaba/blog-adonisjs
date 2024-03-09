@@ -1,7 +1,7 @@
-import User from "../models/user.ts"
-import jwtAuth from "../Utils/jwt.ts"
+import User from "../models/user.js"
+import jwtAuth from "../Utils/jwt.js"
 
-import PasswordValidation from "../utils/passwordValidation.ts"
+import PasswordValidation from "../utils/passwordValidation.js"
 
 import {  createUser,  UserResponse} from "../interface.js"
 
@@ -111,7 +111,7 @@ import {  createUser,  UserResponse} from "../interface.js"
             "age": user.age,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
-            "token": jwtAuth.signToken({id:user.id})
+            "token": jwtAuth.signToken({id:user.id, email:user.email})
         };
     }
 

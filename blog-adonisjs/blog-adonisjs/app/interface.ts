@@ -26,3 +26,8 @@ export interface UserResponse {
     token: string;
 }
 
+export interface UserJWT{
+    _id: number;
+    iat: number;
+    exp: number;
+}

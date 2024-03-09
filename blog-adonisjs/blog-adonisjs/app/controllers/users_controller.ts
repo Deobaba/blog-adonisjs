@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
-import UserService from '../Service/userService.js'
+import UserService from '../services/userService.js'
 import {createUser} from "../interface.ts"
 
 class UsersController {
