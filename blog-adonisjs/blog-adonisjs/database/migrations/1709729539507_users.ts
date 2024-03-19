@@ -12,6 +12,7 @@ export default class extends BaseSchema {
       table.string('password', 180).notNullable()
       table.integer('age').notNullable()
       table.string('remember_me_token').nullable()
+      table.timestamp('remember_me_token_expire_at').nullable()
       table.timestamp('created_at')
       table.timestamp('updated_at')
     })

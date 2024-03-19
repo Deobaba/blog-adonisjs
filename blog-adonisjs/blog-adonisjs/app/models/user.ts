@@ -28,6 +28,9 @@ export default class User extends BaseModel {
   @column()
   public rememberMeToken?: string | null
 
+  @column()
+  public rememberMeTokenExpireAt?: DateTime | null
+
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -43,6 +46,7 @@ export default class User extends BaseModel {
 
   @hasMany(() => Comment)
   public comments!: HasMany<typeof Comment>
+    user: Date
 
   // @beforeSave()
   // public static async hashPassword (user: User) {

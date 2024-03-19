@@ -1,12 +1,12 @@
 import User from "../models/user.js"
 import jwtAuth from "../Utils/jwt.js"
+import crypto from "crypto"
 
 import PasswordValidation from "../utils/passwordValidation.js"
 
 import {  createUser,  UserResponse} from "../interface.js"
 
-
- class UserService {
+class UserService {
 
     public async createUser(body:createUser): Promise<User | undefined> {
         try {
@@ -48,8 +48,14 @@ import {  createUser,  UserResponse} from "../interface.js"
     public async updateUser(id:number, fields: any) : Promise<User | null>{
         try {
             const user = await User.find(id);
+
+            const updateDetails = {
+                "email": fields.email,
+                "username":fields.username,
+                "age":fields.age
+            }
             if (user) {
-                user.merge(fields);
+                user.merge(updateDetails);
                 await user.save();
                 return user;
             }
@@ -115,7 +121,55 @@ import {  createUser,  UserResponse} from "../interface.js"
         };
     }
 
-   
+    cryptResetToken(){
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        let expirationDate : Date = new Date();
+        const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        return {resetPasswordToken, expirationDate, resetToken}
+    }
+
+    public async changePassword (id: number, email: string,oldPassword: string, newPassword: string): Promise<boolean> {
+        const user = await User.find({id, email});
+        if (user) {
+            const isMatch = await this.comparePassword(oldPassword, user.password);
+            if (!isMatch) {
+                return false;
+            }
+            user.password = await PasswordValidation.hashPassword(newPassword);
+            await user.save();
+            return true;
+        }
+        return false;
+    }
+
+    public async forgotPassword(email: string) {
+
+        const user = await this.getUserByEmail(email);
+        
+        console.log("User:", user);
+        if(!user){
+            
+            return false
+        }
+
+        const {resetPasswordToken, expirationDate, resetToken} = this.cryptResetToken();
+       const fields = {
+        rememberMeToken: resetPasswordToken,
+        rememberMeTokenExpireAt: expirationDate
+       }
+
+    //    console.log(fields, resetToken)
+
+       user.merge(fields);
+
+       await user.save();
+
+       console.log("it got here lord")
+
+
+        return {resetToken, user}
+    }
 
 }
 
