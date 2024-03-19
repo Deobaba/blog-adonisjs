@@ -52,9 +52,14 @@ class UsersController {
         }
     }
 
-    public async getUserById({ params, response}: HttpContext ) {
+    public async getUserById({ request,response, params}: HttpContext ) {
         try {
             const user = await UserService.getUserById(params.id);
+
+            if(user!==null && request.user.id !== user.id){
+
+                return response.status(404).json({message: "you can only view your profile"});
+           }
             if (user) {
                 return response.status(200).json(user);
             }
@@ -117,7 +122,7 @@ class UsersController {
             if (user) {
                 return response.status(200).json(user);
             }
-            return response.status(404).json({message: "User not found"});
+            return response.status(404).json({message: "invalid Credentials"});
         } 
         catch (error) {
             console.error("Error logging in user:", error);

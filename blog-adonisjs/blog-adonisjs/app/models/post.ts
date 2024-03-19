@@ -11,7 +11,7 @@ export default class Post extends BaseModel {
   declare id: number
 
   @column()
-  public userid !: number
+  public userId !: number
 
   @column()
   public title!: string

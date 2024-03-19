@@ -31,3 +31,10 @@ export interface UserJWT{
     iat: number;
     exp: number;
 }
+
+export interface createPost {
+    userid: number,
+    title: string,
+    content: string,
+    isPublished: boolean,
+}

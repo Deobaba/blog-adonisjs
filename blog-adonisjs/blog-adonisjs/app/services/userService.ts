@@ -8,17 +8,17 @@ import {  createUser,  UserResponse} from "../interface.js"
 
 class UserService {
 
-    public async createUser(body:createUser): Promise<User | undefined> {
+    public async createUser(body:createUser): Promise<UserResponse | null> {
         try {
 
             body.password = await PasswordValidation.hashPassword(body.password);
-            const newUser = await User.create(body);
-            return newUser; 
+            const user = await User.create(body);
+            return this.userResponseObject(user);
         }
          catch (error) {
             // Handle error appropriately
             console.error("Error creating user:", error);
-            return undefined;
+            return null;
         }
         
     }
@@ -45,7 +45,7 @@ class UserService {
         }
     }
 
-    public async updateUser(id:number, fields: any) : Promise<User | null>{
+    public async updateUser(id:number, fields: any) : Promise<UserResponse | null>{
         try {
             const user = await User.find(id);
 
@@ -57,7 +57,7 @@ class UserService {
             if (user) {
                 user.merge(updateDetails);
                 await user.save();
-                return user;
+                return this.userResponseObject(user);
             }
             return null;
         } 
@@ -189,14 +189,14 @@ class UserService {
         }
 
         const fields ={
-            password: newPassword,
+            password: await PasswordValidation.hashPassword(newPassword),
             rememberMeToken: null,
             rememberMeTokenExpireAt: null
         }
 
         user.merge(fields);
         await user.save();
-        return user
+        return this.userResponseObject(user);
     }
 }
 

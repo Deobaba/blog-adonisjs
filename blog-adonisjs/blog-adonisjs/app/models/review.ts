@@ -10,10 +10,10 @@ export default class Review extends BaseModel {
   declare id: number
 
   @column()
-  public userid !: number
+  public userId !: number
   
   @column()
-  public postid !: number
+  public postId !: number
 
   @column()
   public rating!: number
