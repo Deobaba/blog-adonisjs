@@ -125,6 +125,21 @@ class UsersController {
         }
     }
 
+    public async changePassword ({ request, response}: HttpContext ) {
+        try{
+            const body = request.body();
+            const user = await UserService.changePassword(body.id,body.email, body.password, body.newPassword);
+            if (user) {
+                return response.status(200).json(user);
+            }
+            return response.status(404).json({message: "User not found"});
+        }
+        catch (error) {
+            console.error("Error changing password:", error);
+            return response.status(500).json({message: "Error changing password"});
+        }
+    }
+
     public async forgotPassword ({ request, response}: HttpContext ) {
         try {
             const body = request.body();
