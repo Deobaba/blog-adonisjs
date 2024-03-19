@@ -92,7 +92,7 @@ import {createPost} from "../interface.ts"
         }
     }
 
-    public async getPostByUserId ({ params, response}: HttpContext ) {
+    public async getAllPostByUserId ({ params, response}: HttpContext ) {
         try {
             const post = await PostService.getPostByUserId(params.id);
             if (post) {

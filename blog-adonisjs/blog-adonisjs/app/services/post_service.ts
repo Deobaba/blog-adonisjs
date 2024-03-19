@@ -37,7 +37,13 @@ class PostService {
     public async getPostById(id: number): Promise<Post | null>{
         try {
             const post = await Post.find(id);
-            return post;
+
+            if (post) {
+                post.views++
+                await post.save()
+                return post;
+            }
+           return null
         } catch (error) {
             console.error("Error getting post by id:", error);
             return null;
@@ -67,7 +73,7 @@ class PostService {
 
     public async getPostByUserId(userid: number): Promise<Post[] | null>{
         try {
-            const posts = await Post.query().where('userid', userid).preload('user');
+            const posts = await Post.query().where('userId', userid).preload('user');
             return posts;
         } catch (error) {
             console.error("Error getting post by user id:", error);
@@ -137,7 +143,7 @@ class PostService {
 
     public async getPublishedPostByAUser (userid: number): Promise<Post[] | null>{
         try {
-            const posts = await Post.query().where('userid', userid).where('isPublished', true).preload('user');
+            const posts = await Post.query().where('userId', userid).where('isPublished', true).preload('user');
             return posts;
         } catch (error) {
             console.error("Error getting published posts by user:", error);
@@ -147,7 +153,7 @@ class PostService {
 
     public async getUnpublishedPostByAUser (userid: number): Promise<Post[] | null>{
         try {
-            const posts = await Post.query().where('userid', userid).where('isPublished', false).preload('user');
+            const posts = await Post.query().where('userId', userid).where('isPublished', false).preload('user');
             return posts;
         } catch (error) {
             console.error("Error getting unpublished posts by user:", error);

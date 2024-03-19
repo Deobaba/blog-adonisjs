@@ -38,3 +38,9 @@ export interface createPost {
     content: string,
     isPublished: boolean,
 }
+
+export interface createComment {
+    userid: number,
+    postid: number,
+    comment: string
+}

@@ -10,6 +10,7 @@
 import router from '@adonisjs/core/services/router'
 import UsersController from "../app/controllers/users_controller.js"
 import PostsController from "../app/controllers/posts_controller.js"
+import CommentsController from "../app/controllers/comments_controller.js"
 import { middleware } from '#start/kernel'
 
 router.get('/', async () => {
@@ -42,4 +43,16 @@ router.delete('/post/:id', PostsController.deletePost)
 router.get('/post/:id', PostsController.getPostById)
 router.put('/post/:id', PostsController.updatePost)
 router.post('/post/publish/:id', PostsController.makePostPublished)
+router.get("/post/user/:id", PostsController.getAllPostByUserId)
 
+
+
+// comment
+
+router.post('/comment/create', CommentsController.createComment)
+router.get('/comments', CommentsController.getAllComments)
+router.delete('/comment/:id', CommentsController.deleteComment)
+router.get('/comment/:id', CommentsController.getCommentById)
+router.put('/comment/:id', CommentsController.updateComment)
+router.get("/comment/post/:id", CommentsController.getCommentsByPostId)
+router.get("/comment/user/:id", CommentsController.getCommentsByUserId)
