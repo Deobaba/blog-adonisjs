@@ -123,20 +123,23 @@ class UserService {
 
     cryptResetToken(){
         const resetToken = crypto.randomBytes(20).toString('hex');
-        let expirationDate : Date = new Date();
+        let expirationDate : Date = new Date(Date.now() + 10 * 60 * 1000)
         const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
         return {resetPasswordToken, expirationDate, resetToken}
     }
 
-    public async changePassword (id: number, email: string,oldPassword: string, newPassword: string): Promise<boolean> {
-        const user = await User.find({id, email});
+    public async changePassword ( email: string,oldPassword: string, newPassword: string): Promise<boolean> {
+        const user = await User.findBy('email', email);
+        console.log("User:", user);
         if (user) {
             const isMatch = await this.comparePassword(oldPassword, user.password);
             if (!isMatch) {
                 return false;
             }
-            user.password = await PasswordValidation.hashPassword(newPassword);
+            let newpassword = await PasswordValidation.hashPassword(newPassword);
+
+            user.merge({password:newpassword})
             await user.save();
             return true;
         }
@@ -171,6 +174,30 @@ class UserService {
         return {resetToken, user}
     }
 
+
+    public async resetPassword( resetToken: string, newPassword: string) {
+
+       const Token = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+       const user = await User.query()
+                                .where('rememberMeToken', Token)
+                                .where('rememberMeTokenExpireAt', '>', new Date())
+                                .first();
+
+        if (!user) {
+            return false;
+        }
+
+        const fields ={
+            password: newPassword,
+            rememberMeToken: null,
+            rememberMeTokenExpireAt: null
+        }
+
+        user.merge(fields);
+        await user.save();
+        return user
+    }
 }
 
 export default new UserService()

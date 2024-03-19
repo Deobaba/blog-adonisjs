@@ -128,9 +128,9 @@ class UsersController {
     public async changePassword ({ request, response}: HttpContext ) {
         try{
             const body = request.body();
-            const user = await UserService.changePassword(body.id,body.email, body.password, body.newPassword);
+            const user = await UserService.changePassword(body.email, body.password, body.newPassword);
             if (user) {
-                return response.status(200).json(user);
+                return response.status(200).json({message:"successful",user});
             }
             return response.status(404).json({message: "User not found"});
         }
@@ -190,6 +190,20 @@ class UsersController {
         }
     }
 
+    public async resetPassword ({ request, response, params}: HttpContext ) {
+        try {
+            const body = request.body();
+            const user = await UserService.resetPassword(params.token, body.newPassword);
+            if (user) {
+                return response.status(200).json(user);
+            }
+            return response.status(404).json({message: "User not found"});
+        } 
+        catch (error) {
+            console.error("Error resetting password:", error);
+            return response.status(500).json({message: "Error resetting password"});
+        }
+    }
 
 }
 
