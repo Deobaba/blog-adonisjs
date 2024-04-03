@@ -33,14 +33,14 @@ export interface UserJWT{
 }
 
 export interface createPost {
-    userid: number,
+    userId: number,
     title: string,
     content: string,
     isPublished: boolean,
 }
 
 export interface createComment {
-    userid: number,
-    postid: number,
+    userId: number,
+    postId: number,
     comment: string
 }

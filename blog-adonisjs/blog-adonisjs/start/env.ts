@@ -40,7 +40,8 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   GMAIL_USERNAME : Env.schema.string(),
   GMAIL_PASSWORD : Env.schema.string(),
-  SEND_GRID: Env.schema.string()
+  SEND_GRID: Env.schema.string(),
+  UPLOAD_DIR: Env.schema.string()
 
 
 })

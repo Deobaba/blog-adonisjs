@@ -46,7 +46,7 @@ export default class User extends BaseModel {
 
   @hasMany(() => Comment)
   public comments!: HasMany<typeof Comment>
-    user: Date
+
 
   // @beforeSave()
   // public static async hashPassword (user: User) {

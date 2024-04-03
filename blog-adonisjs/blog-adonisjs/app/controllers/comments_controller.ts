@@ -1,5 +1,6 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 import type { HttpContext } from '@adonisjs/core/http'
+import { commentValidation, updateCommentValidation } from '#validators/comment/comment'
 
 import CommentService from '../services/comment_service.js'
 import {createComment} from "../interface.ts"
@@ -8,8 +9,14 @@ class CommentsController {
 
     public async createComment({ request, response }: HttpContext ) {
         try{
-            const body = request.body() as createComment
-            const comment = await CommentService.createComment(body)
+            const body = request.body() 
+            body.userId = request.user?.id
+            const { error } = commentValidation.validate(body)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
+
+            const comment = await CommentService.createComment(body as createComment)
             return response.status(201).json(comment)
         } catch(err){
             console.error('Error creating comment:', err)
@@ -33,8 +40,13 @@ class CommentsController {
         }
     }
 
-    public async deleteComment({ params, response}: HttpContext ) {
+    public async deleteComment({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await CommentService.getCommentById(params.id);
+
+            if(confirmUser?.userId !== request.user?.id){
+                return response.status(401).json({message: "You are not authorized to delete this comment"});
+            }
             const comment = await CommentService.deleteComment(params.id);
             if (comment) {
                 return response.status(200).json(comment);
@@ -47,8 +59,14 @@ class CommentsController {
         }
     }
 
-    public async getCommentById({ params, response}: HttpContext ) {
+    public async getCommentById({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await CommentService.getCommentById(params.id);
+
+            if(confirmUser?.userId !== request.user?.id){
+                return response.status(401).json({message: "You are not authorized to access this comment"});
+            }
+
             const comment = await CommentService.getCommentById(params.id);
             if (comment) {
                 return response.status(200).json(comment);
@@ -64,6 +82,16 @@ class CommentsController {
     public async updateComment({ params, request, response}: HttpContext ) {
         try {
             const fields = request.body()
+            const { error } = updateCommentValidation.validate(fields)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            
+            }
+            const confirmUser = await CommentService.getCommentById(params.id);
+
+            if(confirmUser?.userId !== request.user?.id){
+                return response.status(401).json({message: "You are not authorized to update this comment"});
+            }
             const comment = await CommentService.updateComment(params.id, fields);
             if (comment) {
                 return response.status(200).json(comment);
@@ -92,9 +120,10 @@ class CommentsController {
         }
     }
 
-    public async getCommentsByUserId({ params, response}: HttpContext ) {
+    public async getCommentsByUserId({ response, request}: HttpContext ) {
         try {
-            const comments = await CommentService.getCommentByUserId(params.id);
+            const data = request.user?.id
+            const comments = await CommentService.getCommentByUserId(data);
             if (comments) {
                 return response.status(200).json(comments);
             }

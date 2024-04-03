@@ -1,5 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
+import { userValidation,updateUserValidation,forgotPasswordValidation,loginValidation,resetPasswordValidation,changePasswordValidation } from '#validators/user/createUser'
+
 import UserService from '../services/userService.js'
 import {createUser} from "../interface.ts"
 import sendEmail from '#config/mail'
@@ -15,6 +17,11 @@ class UsersController {
         try {
         // Extract the request body
         const body = request.body() as createUser
+
+        const { error } = userValidation.validate(body)
+        if (error) {
+            return response.status(400).json({ message: error.details[0].message })
+        }
 
         // Call userService to create a new user
         const user = await UserService.createUser(body)
@@ -74,6 +81,16 @@ class UsersController {
     public async updateUser({ params, request, response}: HttpContext ) {
           try {
             let data = request.body();
+            const { error } = updateUserValidation.validate(data)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
+            const confirmUser = await  UserService.getUserById(params.id);
+
+            if(confirmUser!==null && request.user?.id !== confirmUser.id){
+                return response.status(404).json({message: "you can only update your profile"});
+            }
+
             const user = await UserService.updateUser(params.id, data);
             if (user) {
                 return response.status(200).json(user);
@@ -86,8 +103,13 @@ class UsersController {
         }
     }
 
-    public async deleteUser({ params, response}: HttpContext ) {
+    public async deleteUser({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await  UserService.getUserById(params.id);
+
+            if(confirmUser!==null && request.user?.id !== confirmUser.id){
+                return response.status(404).json({message: "you can only delete your profile"});
+            }
             const user = await UserService.deleteUser(params.id);
             if (user) {
                 return response.status(200).json(user);
@@ -100,8 +122,14 @@ class UsersController {
         }
     }
 
-    public async getUserByEmail ({ params, response}: HttpContext ) {
+    public async getUserByEmail ({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await  UserService.getUserById(params.id);
+
+            if(confirmUser!==null && request.user?.id !== confirmUser.id){
+                return response.status(404).json({message: "you can only view your profile"});
+            }
+
             const user = await UserService.getUserByEmail(params.email);
             if (user) {
                 return response.status(200).json(user);
@@ -117,6 +145,10 @@ class UsersController {
     public async loginUser ({ request, response}: HttpContext ) {
         try {
             const body = request.body();
+            const { error } = loginValidation.validate(body)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
             const user = await UserService.login(body.email, body.password);
             
             if (user) {
@@ -133,6 +165,15 @@ class UsersController {
     public async changePassword ({ request, response}: HttpContext ) {
         try{
             const body = request.body();
+            const { error } = changePasswordValidation.validate(body)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
+            const confirmUser = await  UserService.getUserByEmail(body.email);
+
+            if(confirmUser!==null && request.user?.id !== confirmUser.id){
+                return response.status(404).json({message: "you can only delete your profile"});
+            }
             const user = await UserService.changePassword(body.email, body.password, body.newPassword);
             if (user) {
                 return response.status(200).json({message:"successful",user});
@@ -148,6 +189,10 @@ class UsersController {
     public async forgotPassword ({ request, response}: HttpContext ) {
         try {
             const body = request.body();
+            const { error } = forgotPasswordValidation.validate(body)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
             const {resetToken , user }= await UserService.forgotPassword(body.email);
 
             console.log("Reset token:", resetToken);
@@ -198,6 +243,10 @@ class UsersController {
     public async resetPassword ({ request, response, params}: HttpContext ) {
         try {
             const body = request.body();
+            const { error } = resetPasswordValidation.validate(body)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
             const user = await UserService.resetPassword(params.token, body.newPassword);
             if (user) {
                 return response.status(200).json(user);

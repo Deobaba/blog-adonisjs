@@ -1,6 +1,7 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import type { HttpContext } from '@adonisjs/core/http'
+import { postValidation, updatePostValidation, publishPostValidation } from '#validators/post/post'
 
 import PostService from '../services/post_service.js'
 import {createPost} from "../interface.ts"
@@ -9,9 +10,15 @@ import {createPost} from "../interface.ts"
 
     public async createPost({ request, response }: HttpContext ) {
         try{
-            const body = request.body() as createPost
-            const post = await PostService.createPost(body)
+
+            const body = request.body() 
+            body.userId = request.user.id
+            const { error } = postValidation.validate(body)
             
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
+            const post = await PostService.createPost(body as createPost)
             return response.status(201).json(post)
         } catch(err){
             console.error('Error creating post:', err)
@@ -35,8 +42,13 @@ import {createPost} from "../interface.ts"
         }
     }
 
-    public async deletePost({ params, response}: HttpContext ) {
+    public async deletePost({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await PostService.getPostById(params.id);
+            if (confirmUser?.userId !== request.user?.id) {
+                return response.status(401).json({message: "You are not authorized to delete this post"});
+            }
+
             const post = await PostService.deletePost(params.id);
             if (post) {
                 return response.status(200).json(post);
@@ -49,8 +61,13 @@ import {createPost} from "../interface.ts"
         }
     }
 
-    public async getPostById({ params, response}: HttpContext ) {
+    public async getPostById({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await PostService.getPostById(params.id);
+            if (confirmUser?.userId !== request.user?.id) {
+                return response.status(401).json({message: "You are not authorized to access this post"});
+            }
+
             const post = await PostService.getPostById(params.id);
             if (post) {
                 return response.status(200).json(post);
@@ -66,6 +83,16 @@ import {createPost} from "../interface.ts"
     public async updatePost({ params, request, response}: HttpContext ) {
         try {
             let data = request.body();
+            const { error } = updatePostValidation.validate(data)
+            if (error) {
+                return response.status(400).json({ message: error.details[0].message })
+            }
+
+            const confirmUser = await PostService.getPostById(params.id);
+            if (confirmUser?.userId !== request.user?.id) {
+                return response.status(401).json({message: "You are not authorized to update  this post"});
+            }
+
             const post = await PostService.updatePost(params.id, data);
             if (post) {
                 return response.status(200).json(post);
@@ -78,8 +105,15 @@ import {createPost} from "../interface.ts"
         }
     }
 
-    public async makePostPublished ({ params, response}: HttpContext ) {
+    public async makePostPublished ({ params, response, request}: HttpContext ) {
         try {
+            const confirmUser = await PostService.getPostById(params.id);
+
+            if (confirmUser?.userId !== request.user?.id) {
+                return response.status(401).json({message: "You are not authorized to publish this post"});
+            }
+
+
             const post = await PostService.makePostPublished(params.id);
             if (post) {
                 return response.status(200).json(post);
@@ -92,9 +126,11 @@ import {createPost} from "../interface.ts"
         }
     }
 
-    public async getAllPostByUserId ({ params, response}: HttpContext ) {
+    public async getAllPostByUserId ({  response, request}: HttpContext ) {
         try {
-            const post = await PostService.getPostByUserId(params.id);
+            const data = request.user?.id
+
+            const post = await PostService.getPostByUserId(data);
             if (post) {
                 return response.status(200).json(post);
             }
